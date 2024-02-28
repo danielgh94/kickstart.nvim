@@ -94,7 +94,9 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
-
+  {
+    'preservim/nerdtree'
+  },
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -200,6 +202,19 @@ require('lazy').setup({
     },
   },
 
+  {
+    -- Theme inspired by Atom
+    'navarasu/onedark.nvim',
+    priority = 1000,
+    lazy = false,
+    config = function()
+      require('onedark').setup {
+        -- Set a style preset. 'dark' is default.
+        style = 'dark', -- dark, darker, cool, deep, warm, warmer, light
+      }
+      require('onedark').load()
+    end,
+  },
   {
     "folke/tokyonight.nvim",
     lazy = false,
@@ -540,7 +555,7 @@ local on_attach = function(_, bufnr)
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, '[W]orkspace [L]ist Folders')
 
- -- Create a command `:Format` local to the LSP buffer
+  -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
@@ -671,6 +686,40 @@ cmp.setup {
     { name = 'path' },
   },
 }
-vim.cmd[[colorscheme tokyonight-storm]]
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+vim.cmd[[colorscheme tokyonight-storm]]
+
+-- Define a function to set up the autocmd
+local function setup_autocmd()
+    vim.cmd [[
+        autocmd VimEnter * NERDTree
+        autocmd VimEnter * wincmd p
+        autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+        autocmd VimEnter * sp
+        autocmd VimEnter * terminal
+        autocmd VimEnter * wincmd J
+        autocmd VimEnter * wincmd 15-
+        autocmd VimEnter * wincmd k
+        autocmd VimEnter * wincmd l
+        ]]
+end
+
+-- Call the setup function
+setup_autocmd()
+
+function ForceQuitAndCloseAllWindows()
+    vim.cmd(":qa!")
+end
+
+-- Map <leader>qq to the defined function
+vim.api.nvim_set_keymap('n', '<leader>qq', '<cmd>lua ForceQuitAndCloseAllWindows()<CR>', { noremap = true, silent = true })
+
+
+function SaveAndCloseAllWindows()
+    vim.cmd(":wa | qa")
+end
+
+-- Map <leader>wq to the defined function
+vim.api.nvim_set_keymap('n', '<leader>wq', '<cmd>lua SaveAndCloseAllWindows()<CR>', { noremap = true, silent = true })
